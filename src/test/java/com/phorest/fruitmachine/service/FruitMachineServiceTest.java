@@ -1,7 +1,7 @@
 package com.phorest.fruitmachine.service;
 
 import com.phorest.fruitmachine.domain.FruitMachineConfiguration;
-import com.phorest.fruitmachine.domain.FruiteMachineState;
+import com.phorest.fruitmachine.domain.FruitMachineState;
 import com.phorest.fruitmachine.domain.PlayOutcome;
 import com.phorest.fruitmachine.domain.PrizeType;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +18,7 @@ public class FruitMachineServiceTest {
 
     private RandomSpinGenerator randomSpinGenerator;
     private  FruitMachineService fruitMachineService;
-    private FruiteMachineState fruiteMachineState;
+    private FruitMachineState fruitMachineState;
     @BeforeEach
     void setUp(){
         randomSpinGenerator = mock(RandomSpinGenerator.class);
@@ -30,14 +30,14 @@ public class FruitMachineServiceTest {
                 new BigDecimal("2.00"),
                 new BigDecimal("100.00")
         );
-        fruiteMachineState =
-                new FruiteMachineState(configuration.initialFloat());
+        fruitMachineState =
+                new FruitMachineState(configuration.initialFloat());
         fruitMachineService = new FruitMachineService(
                 new PrizeOutcomeEvaluator(),
                 new PrizePayoutCalculator(),
                 randomSpinGenerator,
                 configuration,
-                fruiteMachineState
+                fruitMachineState
         );
     }
 
@@ -96,5 +96,57 @@ public class FruitMachineServiceTest {
         assertEquals(PrizeType.JACK_POT, outcome.prizeType());
         assertEquals(new BigDecimal("102.00"),outcome.payout());
         assertEquals(new BigDecimal("0.00"),outcome.currentFloat());
+    }
+
+    @Test
+    void shouldCreaditFreePlaysWhenFloatCannotCoverSmallPrize(){
+        FruitMachineConfiguration fruitMachineConfiguration = new FruitMachineConfiguration(
+                4,
+                List.of("BLACK", "RED", "GREEN", "YELLOW"),
+                2,
+                new BigDecimal("2.00"),
+                new BigDecimal("2.00")
+        );
+        FruitMachineState fruiteMachineState = new FruitMachineState(fruitMachineConfiguration.initialFloat());
+        FruitMachineService service = new FruitMachineService(
+                new PrizeOutcomeEvaluator(),
+                new PrizePayoutCalculator(),
+                randomSpinGenerator,
+                fruitMachineConfiguration,
+                fruiteMachineState
+        );
+
+        List<String> slots =
+                List.of("BLACK", "RED", "RED", "GREEN");
+        when(randomSpinGenerator.generateRandomSpins(
+                4,
+                fruitMachineConfiguration.colors()
+        )).thenReturn(slots);
+
+        PlayOutcome outcome = service.play();
+        assertEquals(PrizeType.SMALL_PRIZE, outcome.prizeType());
+        assertEquals(new BigDecimal("4.00"),outcome.payout());
+        assertEquals(6, outcome.freePlaysCredited());
+        assertEquals(new BigDecimal("0.00"),outcome.currentFloat());
+        assertEquals(6,fruiteMachineState.getFreePlays());
+    };
+
+    @Test
+    void shouldUseFreePlayWithoutAddingPlayCost(){
+        fruitMachineState.addFreePlays(1);
+
+        List<String> slots =
+                List.of("BLACK", "RED", "BLACK", "GREEN");
+
+        when(randomSpinGenerator.generateRandomSpins(
+                4,
+                List.of("BLACK", "RED", "GREEN", "YELLOW")
+        )).thenReturn(slots);
+
+        PlayOutcome outcome = fruitMachineService.play();
+
+        assertEquals(PrizeType.NO_PRIZE, outcome.prizeType());
+        assertEquals(new BigDecimal("100.00"), outcome.currentFloat());
+        assertEquals(0, fruitMachineState.getFreePlays());
     }
 }

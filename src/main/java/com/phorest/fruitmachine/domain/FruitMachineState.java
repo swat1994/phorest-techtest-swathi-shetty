@@ -2,11 +2,11 @@ package com.phorest.fruitmachine.domain;
 
 import java.math.BigDecimal;
 
-public class FruiteMachineState {
+public class FruitMachineState {
     private BigDecimal currentFloat;
     private int freePlays;
 
-    public FruiteMachineState(BigDecimal initialFloat) {
+    public FruitMachineState(BigDecimal initialFloat) {
         currentFloat = initialFloat;
         freePlays = 0;
     }

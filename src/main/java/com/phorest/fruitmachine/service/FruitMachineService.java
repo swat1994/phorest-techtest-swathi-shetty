@@ -1,7 +1,7 @@
 package com.phorest.fruitmachine.service;
 
 import com.phorest.fruitmachine.domain.FruitMachineConfiguration;
-import com.phorest.fruitmachine.domain.FruiteMachineState;
+import com.phorest.fruitmachine.domain.FruitMachineState;
 import com.phorest.fruitmachine.domain.PlayOutcome;
 import com.phorest.fruitmachine.domain.PrizeType;
 
@@ -14,13 +14,13 @@ public class FruitMachineService {
     private final PrizePayoutCalculator prizePayoutCalculator;
     private final RandomSpinGenerator randomSpinGenerator;
     private final FruitMachineConfiguration fruitMachineConfiguration;
-    private final FruiteMachineState fruiteMachineState;
+    private final FruitMachineState fruiteMachineState;
 
     public FruitMachineService(PrizeOutcomeEvaluator prizeOutcomeEvaluator,
                                PrizePayoutCalculator  prizePayoutCalculator,
                                RandomSpinGenerator randomSpinGenerator,
                                FruitMachineConfiguration fruitMachineConfiguration,
-                               FruiteMachineState fruiteMachineState) {
+                               FruitMachineState fruiteMachineState) {
         this.prizeOutcomeEvaluator = prizeOutcomeEvaluator;
         this.prizePayoutCalculator = prizePayoutCalculator;
         this.randomSpinGenerator = randomSpinGenerator;
@@ -51,18 +51,34 @@ public class FruitMachineService {
                 fruiteMachineState.getCurrentFloat()
         );
 
-        if(prizeAmount.compareTo(BigDecimal.ZERO)>0 &&
-        fruiteMachineState.getCurrentFloat().compareTo(prizeAmount)>=0){
-            fruiteMachineState.payOut(prizeAmount);
+        BigDecimal actualPayout = BigDecimal.ZERO;
+        int freePlaysCreadited =0;
+
+        if (prizeAmount.compareTo(BigDecimal.ZERO) > 0) {
+
+            if (fruiteMachineState.getCurrentFloat().compareTo(prizeAmount) >= 0) {
+
+                fruiteMachineState.payOut(prizeAmount);
+                actualPayout = prizeAmount;
+            }else if(prizeType != PrizeType.JACK_POT){
+                actualPayout =fruiteMachineState.getCurrentFloat();
+                BigDecimal shortfall =
+                        prizeAmount.subtract(actualPayout);
+                freePlaysCreadited = shortfall.intValue();
+                fruiteMachineState.payOut(actualPayout);
+                fruiteMachineState.addFreePlays(freePlaysCreadited);
+
+            }
         }
 
-        int freePlaysCreadited =0;
+
+
 
 
        return  new PlayOutcome(
             slots,
             prizeType,
-            prizeAmount,
+               actualPayout,
             freePlaysCreadited,
             fruiteMachineState.getCurrentFloat()
        );
