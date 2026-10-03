@@ -4,6 +4,7 @@ import com.phorest.fruitmachine.domain.FruitMachineConfiguration;
 import com.phorest.fruitmachine.domain.FruitMachineState;
 import com.phorest.fruitmachine.domain.PlayOutcome;
 import com.phorest.fruitmachine.domain.PrizeType;
+import com.phorest.fruitmachine.dto.MachineStateResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -107,13 +108,13 @@ public class FruitMachineServiceTest {
                 new BigDecimal("2.00"),
                 new BigDecimal("2.00")
         );
-        FruitMachineState fruiteMachineState = new FruitMachineState(fruitMachineConfiguration.initialFloat());
+        fruitMachineState = new FruitMachineState(fruitMachineConfiguration.initialFloat());
         FruitMachineService service = new FruitMachineService(
                 new PrizeOutcomeEvaluator(),
                 new PrizePayoutCalculator(),
                 randomSpinGenerator,
                 fruitMachineConfiguration,
-                fruiteMachineState
+                fruitMachineState
         );
 
         List<String> slots =
@@ -128,7 +129,7 @@ public class FruitMachineServiceTest {
         assertEquals(new BigDecimal("4.00"),outcome.payout());
         assertEquals(6, outcome.freePlaysCredited());
         assertEquals(new BigDecimal("0.00"),outcome.currentFloat());
-        assertEquals(6,fruiteMachineState.getFreePlays());
+        assertEquals(6,fruitMachineState.getFreePlays());
     };
 
     @Test
@@ -148,5 +149,31 @@ public class FruitMachineServiceTest {
         assertEquals(PrizeType.NO_PRIZE, outcome.prizeType());
         assertEquals(new BigDecimal("100.00"), outcome.currentFloat());
         assertEquals(0, fruitMachineState.getFreePlays());
+    }
+
+    @Test
+    void shouldResetMachineStateWhenReconfigured() {
+
+
+        fruitMachineState.addPlayCost(new BigDecimal("20.00"));
+        fruitMachineState.addFreePlays(3);
+
+        FruitMachineConfiguration newConfiguration =
+                new FruitMachineConfiguration(
+                        6,
+                        List.of("RED", "GREEN", "BLUE"),
+                        3,
+                        new BigDecimal("3.00"),
+                        new BigDecimal("200.00")
+                );
+
+        fruitMachineService.configure(newConfiguration);
+
+        MachineStateResponse state =
+                fruitMachineService.getToMachineStateResponse();
+
+        assertEquals(newConfiguration, state.fruitMachineConfiguration());
+        assertEquals(new BigDecimal("200.00"), state.currentFloat());
+        assertEquals(0, state.freePlays());
     }
 }

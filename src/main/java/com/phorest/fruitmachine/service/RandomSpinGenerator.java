@@ -1,9 +1,12 @@
 package com.phorest.fruitmachine.service;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.random.RandomGenerator;
 
+@Component
 public class RandomSpinGenerator {
     private final RandomGenerator randomGenerator;
     public RandomSpinGenerator(RandomGenerator randomGenerator) {

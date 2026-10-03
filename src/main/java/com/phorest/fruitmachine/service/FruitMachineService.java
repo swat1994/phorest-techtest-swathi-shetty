@@ -4,17 +4,21 @@ import com.phorest.fruitmachine.domain.FruitMachineConfiguration;
 import com.phorest.fruitmachine.domain.FruitMachineState;
 import com.phorest.fruitmachine.domain.PlayOutcome;
 import com.phorest.fruitmachine.domain.PrizeType;
+import com.phorest.fruitmachine.dto.MachineStateResponse;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 
+@Service
+
 public class FruitMachineService {
     private final PrizeOutcomeEvaluator prizeOutcomeEvaluator;
     private final PrizePayoutCalculator prizePayoutCalculator;
     private final RandomSpinGenerator randomSpinGenerator;
-    private final FruitMachineConfiguration fruitMachineConfiguration;
-    private final FruitMachineState fruiteMachineState;
+    private  FruitMachineConfiguration fruitMachineConfiguration;
+    private  FruitMachineState fruiteMachineState;
 
     public FruitMachineService(PrizeOutcomeEvaluator prizeOutcomeEvaluator,
                                PrizePayoutCalculator  prizePayoutCalculator,
@@ -82,5 +86,26 @@ public class FruitMachineService {
             freePlaysCreadited,
             fruiteMachineState.getCurrentFloat()
        );
+    }
+
+    public FruitMachineState getFruiteMachineState(){
+        return fruiteMachineState;
+    }
+
+    public FruitMachineState getState(){
+        return fruiteMachineState;
+    }
+
+    public MachineStateResponse getToMachineStateResponse(){
+        return new MachineStateResponse(
+            fruitMachineConfiguration,
+            fruiteMachineState.getCurrentFloat(),
+            fruiteMachineState.getFreePlays()
+        );
+    }
+
+    public void configure(FruitMachineConfiguration newMachineConfiguration){
+        this.fruitMachineConfiguration = newMachineConfiguration;
+        this.fruiteMachineState = new FruitMachineState(newMachineConfiguration.initialFloat());
     }
 }

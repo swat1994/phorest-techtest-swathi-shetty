@@ -1,9 +1,11 @@
 package com.phorest.fruitmachine.service;
 
 import com.phorest.fruitmachine.domain.PrizeType;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
+@Component
 public class PrizePayoutCalculator {
 
     public BigDecimal calculatePrize(PrizeType prizeType,
